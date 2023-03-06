@@ -1,0 +1,31 @@
+Package: rEAG
+Type: Package
+Title: analyze data from EAG
+Version: 0.1.0
+Authors@R: 
+    person(given = "Joris",
+           family = "Huguenin",
+           role = c("aut", "cre"),
+           email = "joris.huguenin@cefe.cnrs.fr")
+Organization: CEFE, University of Montpellier
+Address: Montpellier, France
+Packaged: 2023-01-03; huguenin
+Description: The rEAG package allows import, merge and print data from EAG.
+Date/Publication: 2023-03-06
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.2
+Imports:
+    data.table (>= 1.14.2),
+    htmlwidgets (>= 1.5.4),
+    magrittr (>= 2.0.0),
+    methods (>= 4.0.5),
+    plotly (>= 4.10.0),
+    pracma (>= 2.3.8),
+    RColorBrewer (>= 1.1),
+    rmarkdown (>= 2.11.0),
+    stats (>= 4.0.5),
+    stringr (>= 1.4.0),
+    utils (>= 4.0.5)
