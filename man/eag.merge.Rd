@@ -4,7 +4,7 @@
 \alias{eag.merge}
 \title{Merge EAG}
 \usage{
-eag.merge(..., eag_names = NULL, tmP = NULL, wd = NULL)
+eag.merge(..., eag_names = NULL, tmP = NULL, wd = NULL, print.graph = FALSE)
 }
 \arguments{
 \item{...}{list of eag}
@@ -14,6 +14,8 @@ eag.merge(..., eag_names = NULL, tmP = NULL, wd = NULL)
 \item{tmP}{duration of pulse (in cs)}
 
 \item{wd}{working directory}
+
+\item{print.graph}{logical. Print or not a graph for view depolarisation, group by seq and by concentration}
 }
 \value{
 a S4 eag object
@@ -26,7 +28,7 @@ Merge EAG
 # B_170 <- eag.import("Bombus170_C_0ppb_1h")
 # B_171 <- eag.import("Bombus171_C_0ppb_1h")
 # B_172 <- eag.import("Bombus172_C_0ppb_1h")
-# 
+#
 # Sname <- c("B_137","B_170","B_171","B_172")
 # Meag <- eag.merge(B_137, B_170, B_171, B_172, eag_names = Sname)
 }
