@@ -27,6 +27,74 @@ NULL
 # library(RColorBrewer)
 # library(data.table)
 
+# Import Experimental Design ####
+
+#' Import experimental design
+#'
+#' Import un plan d'experience, les concentrations des VOC, les sequences,
+#' modalites et commentaires
+#'
+#' @param ExpDes file name (without extension)
+#' @param wd working directory
+#'
+#' @return a data frame
+#' @export
+#'
+#' @examples
+#' # expdes <- import.exp.design("Experimental_design", wd = wod)
+import.exp.design <- function(ExpDes = "Experimental_Design_Name", wd = NULL){
+
+  # check ####
+  if (is.null(wd) == TRUE) wd <- getwd()
+  if (!is.character(wd)) stop("'wd' must be character")
+  if (!is.character(ExpDes)) stop("'ExpDes' must be character")
+  if (length(ExpDes) != 1) stop("Length of 'ExpDes' must be 1.")
+
+  # import
+  ExpDes <- str_remove(ExpDes,".csv") # suppresion du l'extension
+  expdes <- read.csv2(paste0(wd,"/",ExpDes,".csv")) # plan d'experience
+
+  # verification des colonnes
+  if (length(colnames(expdes)) < 4) stop("Experimental Design csv file must respect the format.
+                                         Use 'create.empty.exp.design()' for a good practise")
+  fmr <- colnames(expdes)[1:4] %>% str_flatten()
+  if (fmr != "DateVOCconcentrationVOCseqFile" ) stop("Experimental Design csv file must respect the format.
+  First columns must be 'Date' 'VOCconcentration' 'VOCseq' and 'File'. Use 'create.empty.exp.design()' for a good practise")
+
+  # verification des formats
+  expdes$VOCconcentration <- as.numeric(expdes$VOCconcentration) # numeric
+  expdes$File <- str_remove_all(expdes$File,".csv") # suppresion du l'extension
+
+  return(expdes)
+}
+
+#' Create a empty experimental design
+#'
+#' Genere un fichier .csv avec les sequences de VOC pretires. De colonnes et des
+#' lignes peuvent etre ajoutees a ce fichier si necessaire. Les nouvelles colonnes
+#' doivent toutes etre ajoutees sur la droite.
+#'
+#' @param VOC VOC names
+#' @param control control name
+#' @param nS number of pre-drawn sequences
+#' @param wd working directory
+#'
+#' @return a csv file
+#' @export
+#'
+#' @examples
+#' create.empty.exp.design(VOC = c("L","B","N"), control = "T", nS = 10)
+create.empty.exp.design <- function(VOC = c("L","B","N"), control = "T", nS = 10, wd = NULL){
+
+  Vs <- NULL
+  for(i in 1:nS) Vs <- c(Vs,str_flatten(c(control,sample(VOC),control)," "))
+
+  fmr <- data.frame(File = "",
+             VOCconcentration = "",
+             VOCseq =  Vs)
+  write.csv2(fmr,"Exp_Design_Empty.csv",quote = FALSE,row.names = FALSE)
+}
+
 # Import EAG ####
 
 #' Import EAG
@@ -35,7 +103,7 @@ NULL
 #' On calcule l'intensite et le temps de depolarisation pour chaque pulse.
 #'
 #' @param Sname name of file.csv
-#' @param temoin name of temoin (concentration zero)
+#' @param control name of control (concentration zero)
 #' @param tmP duration of pulse (in centi second)
 #' @param wd working directory
 #' @param ws width selection
@@ -44,8 +112,8 @@ NULL
 #' @export
 #'
 #' @examples
-#' # B_137 <- eag.import("Bombus137_C_0ppb_1h", temoin = "T", tmP = 50, wd = NULL)
-eag.import <- function(Sname = filenames[1], temoin = "T", tmP = 50, wd = NULL, ws =25){
+#' # B_137 <- eag.import("Bombus137_C_0ppb_1h", control = "T", tmP = 50, wd = NULL)
+eag.import <- function(Sname = filenames[1], control = "T", tmP = 50, wd = NULL, ws =25){
 
   # check ####
   if (is.null(wd) == TRUE) wd <- getwd()
@@ -54,13 +122,13 @@ eag.import <- function(Sname = filenames[1], temoin = "T", tmP = 50, wd = NULL, 
   if (!is.character(Sname)) stop("'Sname' must be character")
   if (!is.numeric(ws)) stop("'ws' must be numeric")
   if (!is.numeric(tmP)) stop("'tmP' must be numeric")
-  if (!is.character(temoin)) stop("'temoin' must be a character")
+  if (!is.character(control)) stop("'control' must be a character")
   if (length(ws) != 1) stop("Length of 'ws' must be 1.")
   if (length(tmP) != 1) stop("Length of 'tmP' must be 1.")
-  if (length(temoin) != 1) stop("Length of 'temoin' must be 1.")
+  if (length(control) != 1) stop("Length of 'control' must be 1.")
 
   # Importation du fichier EAG ####
-  eag <- read.csv(paste0(Sname,".csv"))[,-(1:2)] # import du fichier EAG
+  eag <- read.csv(paste0(wd,"/",Sname,".csv"))[,-(1:2)] # import du fichier EAG
   neag <- ncol(eag)/3  # nombre de signaux EAG
 
   fmr <- which(Sname == expdes$File) # index dans le plan d'experience
@@ -139,7 +207,7 @@ eag.import <- function(Sname = filenames[1], temoin = "T", tmP = 50, wd = NULL, 
   # Mise en forme finale ####
 
   depol <- resM[,1:4] # on garde l'intensité et le temps de depol, ainsi que la concentration et le VOC
-  depol$con[which(depol$seq == temoin)] <- 0 # mise a zero des temoins
+  depol$con[which(depol$seq == control)] <- 0 # mise a zero des temoins
   depol$con <- as.character(depol$con) %>% as.factor() # les numeriques posent preobleme pour le graphe
   depol$seq <- as.factor(depol$seq) # facteur
   depol$variable <- rownames(depol) # pour le graphe
@@ -156,17 +224,16 @@ eag.import <- function(Sname = filenames[1], temoin = "T", tmP = 50, wd = NULL, 
 
   ### by Concentration
   fig <- plot_ly(Teag, type = "scatter", mode = "lines", x = ~time, y = ~value,
-                 color = ~con, name = ~variable) %>%
-         layout(title = Sname,
+                 color = ~con, name = ~variable)
+  fig <- plotly::layout(fig, title = Sname,
                 shapes = list(list(type = "line", y0 = 0, y1 = 1, yref = "paper",
                                    x0 = 0, x1 = 0, line = list(color = "orange", dash="dot")),
                               list(type = "line", y0 = 0, y1 = 1, yref = "paper",
                                    x0 = tmP/100, x1 = tmP/100, line = list(color = "orange", dash="dot"))),
                 xaxis = list(title = 'Time (sec)'),
                 yaxis = list(title = 'EAG (mA)'),
-                legend = list(title=list(text='<b> VOC_concentration </b>'),
-                              x = 0.02, y = 0.9)) %>%
-         add_markers(x = ~Tdp, y = ~Idp, data = depol, showlegend= FALSE)
+                legend = list(title=list(text='<b> VOC_concentration </b>'), x = 0.02, y = 0.9))
+  fig <- add_markers(fig, x = ~Tdp, y = ~Idp, data = depol, showlegend= FALSE)
 
   # print(fig)
   htmlwidgets::saveWidget(fig, paste0(wd,"/figures/options_graph_dy.html"), selfcontained = TRUE)
@@ -175,8 +242,8 @@ eag.import <- function(Sname = filenames[1], temoin = "T", tmP = 50, wd = NULL, 
 
   ### by VOC
   fig <- plot_ly(Teag, type = "scatter", mode = "lines", x = ~time, y = ~value,
-                 color = ~seq, name = ~variable) %>%
-    layout(title = Sname,
+                 color = ~seq, name = ~variable)
+  fig <- plotly::layout(fig, title = Sname,
            shapes = list(list(type = "line", y0 = 0, y1 = 1, yref = "paper",
                               x0 = 0, x1 = 0, line = list(color = "orange", dash="dot")),
                          list(type = "line", y0 = 0, y1 = 1, yref = "paper",
@@ -184,8 +251,8 @@ eag.import <- function(Sname = filenames[1], temoin = "T", tmP = 50, wd = NULL, 
            xaxis = list(title = 'Time (sec)'),
            yaxis = list(title = 'EAG (mA)'),
            legend = list(title=list(text='<b> VOC_concentration </b>'),
-                         x = 0.02, y = 0.9)) %>%
-    add_markers(x = ~Tdp, y = ~Idp, data = depol, showlegend= FALSE)
+                         x = 0.02, y = 0.9))
+  fig <- add_markers(fig, x = ~Tdp, y = ~Idp, data = depol, showlegend= FALSE)
 
   # print(fig)
   htmlwidgets::saveWidget(fig, paste0(wd,"/figures/options_graph_dy.html"), selfcontained = TRUE)
@@ -269,8 +336,8 @@ eag.merge <- function(..., eag_names = NULL, tmP = NULL, wd = NULL, print.graph 
   if(print.graph == TRUE){
     ### by Concentration
     fig <- plot_ly(Teag, type = "scatter", mode = "lines", x = ~time, y = ~value,
-                   color = ~con, name = ~variable) %>%
-           layout(title = str_flatten(eag_names, " "),
+                   color = ~con, name = ~variable)
+    fig <- plotly::layout(fig, title = str_flatten(string = eag_names,collapse = " "),
                   shapes = list(list(type = "line", y0 = 0, y1 = 1, yref = "paper",
                                      x0 = 0, x1 = 0, line = list(color = "orange", dash="dot")),
                                 list(type = "line", y0 = 0, y1 = 1, yref = "paper",
@@ -278,8 +345,8 @@ eag.merge <- function(..., eag_names = NULL, tmP = NULL, wd = NULL, print.graph 
                   xaxis = list(title = 'Time (sec)'),
                   yaxis = list(title = 'EAG (mA)'),
                   legend = list(title=list(text='<b> VOC_concentration </b>'),
-                                x = 0.02, y = 0.9)) %>%
-           add_markers(x = ~Tdp, y = ~Idp, data = depol, showlegend= FALSE)
+                                x = 0.02, y = 0.9))
+    fig <- add_markers(fig, x = ~Tdp, y = ~Idp, data = depol, showlegend= FALSE)
 
     # print(fig)
     htmlwidgets::saveWidget(fig, paste0(wd,"/figures/options_graph_dy.html"), selfcontained = TRUE)
@@ -288,8 +355,8 @@ eag.merge <- function(..., eag_names = NULL, tmP = NULL, wd = NULL, print.graph 
 
     ### by VOC
     fig <- plot_ly(Teag, type = "scatter", mode = "lines", x = ~time, y = ~value,
-                   color = ~seq, name = ~variable) %>%
-      layout(title = str_flatten(eag_names, " "),
+                   color = ~seq, name = ~variable)
+    fig <- plotly::layout(fig, title = str_flatten(eag_names," "),
              shapes = list(list(type = "line", y0 = 0, y1 = 1, yref = "paper",
                                 x0 = 0, x1 = 0, line = list(color = "orange", dash="dot")),
                            list(type = "line", y0 = 0, y1 = 1, yref = "paper",
@@ -297,8 +364,8 @@ eag.merge <- function(..., eag_names = NULL, tmP = NULL, wd = NULL, print.graph 
              xaxis = list(title = 'Time (sec)'),
              yaxis = list(title = 'EAG (mA)'),
              legend = list(title=list(text='<b> VOC_concentration </b>'),
-                           x = 0.02, y = 0.9)) %>%
-      add_markers(x = ~Tdp, y = ~Idp, data = depol, showlegend= FALSE)
+                           x = 0.02, y = 0.9))
+    fig <- add_markers(fig, x = ~Tdp, y = ~Idp, data = depol, showlegend= FALSE)
 
     # print(fig)
     htmlwidgets::saveWidget(fig, paste0(wd,"/figures/options_graph_dy.html"), selfcontained = TRUE)
@@ -347,16 +414,16 @@ eag.print <- function(eag, moda = "seq"){
 
   ### by Modality
   fig <- plot_ly(Teag, type = "scatter", mode = "lines", x = ~time, y = ~value,
-                 color = ~moda, name = ~variable, colors = dcol) %>%
-    layout(title = paste(str_flatten(eag@names, " "),"by",moda),
+                 color = ~moda, name = ~variable, colors = dcol)
+  fig <- plotly::layout(fig, title = paste(str_flatten(eag@names, " "),"by",moda),
            shapes = list(list(type = "line", y0 = 0, y1 = 1, yref = "paper",
                               x0 = 0, x1 = 0, line = list(color = "orange", dash="dot")),
                          list(type = "line", y0 = 0, y1 = 1, yref = "paper",
                               x0 = tmP/100, x1 = tmP/100, line = list(color = "orange", dash="dot"))),
            xaxis = list(title = 'Time (sec)'),
            yaxis = list(title = 'EAG (mA)'),
-           legend = list(title=list(text='<b> VOC_concentration </b>'), x = 0.02, y = 0.9)) %>%
-    add_markers(x = ~Tdp, y = ~Idp, data = eag@depol, showlegend = FALSE)
+           legend = list(title=list(text='<b> VOC_concentration </b>'), x = 0.02, y = 0.9))
+  fig <- add_markers(fig, x = ~Tdp, y = ~Idp, data = eag@depol, showlegend = FALSE)
 
   print(fig)
 

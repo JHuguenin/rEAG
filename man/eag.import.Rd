@@ -4,12 +4,12 @@
 \alias{eag.import}
 \title{Import EAG}
 \usage{
-eag.import(Sname = filenames[1], temoin = "T", tmP = 50, wd = NULL, ws = 25)
+eag.import(Sname = filenames[1], control = "T", tmP = 50, wd = NULL, ws = 25)
 }
 \arguments{
 \item{Sname}{name of file.csv}
 
-\item{temoin}{name of temoin (concentration zero)}
+\item{control}{name of control (concentration zero)}
 
 \item{tmP}{duration of pulse (in centi second)}
 
@@ -25,5 +25,5 @@ Importe un fichier csv, detecte les pulses de COV puis centre chaque pulse sur u
 On calcule l'intensite et le temps de depolarisation pour chaque pulse.
 }
 \examples{
-# B_137 <- eag.import("Bombus137_C_0ppb_1h", temoin = "T", tmP = 50, wd = NULL)
+# B_137 <- eag.import("Bombus137_C_0ppb_1h", control = "T", tmP = 50, wd = NULL)
 }
