@@ -4,7 +4,7 @@
 \alias{eag.import}
 \title{Import EAG}
 \usage{
-eag.import(Sname = filenames[1], control = "T", tmP = 50, wd = NULL, ws = 25)
+eag.import(Sname, control = "T", tmP = 50, wd = NULL, ws = 25)
 }
 \arguments{
 \item{Sname}{name of file.csv}

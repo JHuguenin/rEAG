@@ -113,7 +113,7 @@ create.empty.exp.design <- function(VOC = c("L","B","N"), control = "T", nS = 10
 #'
 #' @examples
 #' # B_137 <- eag.import("Bombus137_C_0ppb_1h", control = "T", tmP = 50, wd = NULL)
-eag.import <- function(Sname = filenames[1], control = "T", tmP = 50, wd = NULL, ws =25){
+eag.import <- function(Sname, control = "T", tmP = 50, wd = NULL, ws =25){
 
   # check ####
   if (is.null(wd) == TRUE) wd <- getwd()
@@ -187,7 +187,7 @@ eag.import <- function(Sname = filenames[1], control = "T", tmP = 50, wd = NULL,
 
     # # Graphe control
     # matplot(Tp/100,t(matS), type = "l", lwd = 2, lty = 1, col = rainbow(nrow(dP)),
-    #         xlab = "Time (s)", ylab = "EAG (mA)", main = paste(Sname,"\nC =",Cvoc[k]))
+    #         xlab = "Time (s)", ylab = "EAG (mV)", main = paste(Sname,"\nC =",Cvoc[k]))
     # matplot(Tp/100,t(matP), type = "l", lwd = 1, lty = 1, col = rainbow(nrow(dP)), add = TRUE)
     # abline(v = c(0,tmP/100), col = "orange", lwd = 2, lty = 2)
     # points(dP$Tdp, dP$Idp, col = "black", pch = 16)
@@ -207,10 +207,15 @@ eag.import <- function(Sname = filenames[1], control = "T", tmP = 50, wd = NULL,
   # Mise en forme finale ####
 
   depol <- resM[,1:4] # on garde l'intensité et le temps de depol, ainsi que la concentration et le VOC
-  depol$con[which(depol$seq == control)] <- 0 # mise a zero des temoins
-  depol$con <- as.character(depol$con) %>% as.factor() # les numeriques posent preobleme pour le graphe
+  i_ctrl <- which(depol$seq == control) # l'index des controls
+
+  depol$con[i_ctrl] <- 0 # mise a zero des temoins
+  depol$con <- as.character(depol$con) %>% as.factor() # les numeriques posent probleme pour le graphe
   depol$seq <- as.factor(depol$seq) # facteur
   depol$variable <- rownames(depol) # pour le graphe
+
+  depol$Idp_adj <- abs(depol$Idp)
+  depol$Idp_adj[i_ctrl] <- 0
 
   eag <- data.frame(time = Tp[fmr]/100, t(resM[,-(1:4)])) # data
   setDT(eag) # transformation en data.table (???)
@@ -231,7 +236,7 @@ eag.import <- function(Sname = filenames[1], control = "T", tmP = 50, wd = NULL,
                               list(type = "line", y0 = 0, y1 = 1, yref = "paper",
                                    x0 = tmP/100, x1 = tmP/100, line = list(color = "orange", dash="dot"))),
                 xaxis = list(title = 'Time (sec)'),
-                yaxis = list(title = 'EAG (mA)'),
+                yaxis = list(title = 'EAG (mV)'),
                 legend = list(title=list(text='<b> VOC_concentration </b>'), x = 0.02, y = 0.9))
   fig <- add_markers(fig, x = ~Tdp, y = ~Idp, data = depol, showlegend= FALSE)
 
@@ -249,7 +254,7 @@ eag.import <- function(Sname = filenames[1], control = "T", tmP = 50, wd = NULL,
                          list(type = "line", y0 = 0, y1 = 1, yref = "paper",
                               x0 = tmP/100, x1 = tmP/100, line = list(color = "orange", dash="dot"))),
            xaxis = list(title = 'Time (sec)'),
-           yaxis = list(title = 'EAG (mA)'),
+           yaxis = list(title = 'EAG (mV)'),
            legend = list(title=list(text='<b> VOC_concentration </b>'),
                          x = 0.02, y = 0.9))
   fig <- add_markers(fig, x = ~Tdp, y = ~Idp, data = depol, showlegend= FALSE)
@@ -343,7 +348,7 @@ eag.merge <- function(..., eag_names = NULL, tmP = NULL, wd = NULL, print.graph 
                                 list(type = "line", y0 = 0, y1 = 1, yref = "paper",
                                      x0 = tmP/100, x1 = tmP/100, line = list(color = "orange", dash="dot"))),
                   xaxis = list(title = 'Time (sec)'),
-                  yaxis = list(title = 'EAG (mA)'),
+                  yaxis = list(title = 'EAG (mV)'),
                   legend = list(title=list(text='<b> VOC_concentration </b>'),
                                 x = 0.02, y = 0.9))
     fig <- add_markers(fig, x = ~Tdp, y = ~Idp, data = depol, showlegend= FALSE)
@@ -362,7 +367,7 @@ eag.merge <- function(..., eag_names = NULL, tmP = NULL, wd = NULL, print.graph 
                            list(type = "line", y0 = 0, y1 = 1, yref = "paper",
                                 x0 = tmP/100, x1 = tmP/100, line = list(color = "orange", dash="dot"))),
              xaxis = list(title = 'Time (sec)'),
-             yaxis = list(title = 'EAG (mA)'),
+             yaxis = list(title = 'EAG (mV)'),
              legend = list(title=list(text='<b> VOC_concentration </b>'),
                            x = 0.02, y = 0.9))
     fig <- add_markers(fig, x = ~Tdp, y = ~Idp, data = depol, showlegend= FALSE)
@@ -385,6 +390,8 @@ eag.merge <- function(..., eag_names = NULL, tmP = NULL, wd = NULL, print.graph 
 #'
 #' @param eag a eag objet
 #' @param moda a modality for group samples
+#' @param delet_con character. Concentration to be deleted
+#' @param delet_seq character. Name of the sequences to be deleted
 #'
 #' @return a figure
 #' @export
@@ -392,7 +399,7 @@ eag.merge <- function(..., eag_names = NULL, tmP = NULL, wd = NULL, print.graph 
 #' @examples
 #' # Meagdepol$con_seq <- paste0(Meag@depol$seq,"_",Meag@depol$con)
 #' # eag.print(Meag, "con_seq")
-eag.print <- function(eag, moda = "seq"){
+eag.print <- function(eag, moda = "seq", delet_seq = NULL, delet_con = NULL){
 
   # check
   if (class(eag) != "eag") stop("eag must be a eag S4 object")
@@ -401,6 +408,18 @@ eag.print <- function(eag, moda = "seq"){
   if (length(moda) != 1) stop("Length of 'moda' must be 1.")
   im <- match(moda,colnames(eag@depol))
   if (is.na(im)) stop("moda must be a vector of eag@depol")
+  if (!is.null(delet_con)) if (!is.character(delet_con)) stop("'delet_con' must be null or a character")
+  if (!is.null(delet_seq)) if (!is.character(delet_seq)) stop("'delet_seq' must be null or a character")
+  if (is.character(delet_con)) if(mean(delet_con %in% levels(eag@depol$con)) != 1) stop("'delet_con' isn't a level of experimental design")
+  if (is.character(delet_seq)) if(mean(delet_seq %in% levels(eag@depol$seq)) != 1) stop("'delet_seq' isn't a level of experimental design")
+
+  # suppresion des echantillon non desires ###
+  i_del <- c(which(match(eag@depol$seq,delet_seq) > 0),
+             which(match(eag@depol$con,delet_con) > 0)) %>% unique() %>% sort() # recherche des indices
+
+  eag@depol <- eag@depol[-i_del,] # suppression dans depol
+  i_del <- i_del + 1             # le +1 compense la colonne time
+  eag@eag <- eag@eag[,-..i_del] # suppression dans eag
 
   # Mise en forme ####
   Teag <- melt(eag@eag, id.vars = "time") # mise en forme pour plotly
@@ -408,20 +427,16 @@ eag.print <- function(eag, moda = "seq"){
   levels(Teag$moda) <- eag@depol[,im]
   eag@depol$moda <- eag@depol[,im]
 
-  # Graphe ####
-  nM <- length(levels(Teag$moda))
-  dcol <- c(brewer.pal(8,"Accent"),brewer.pal(8,"Dark2"),brewer.pal(8,"Set2"))[1:nM]
-
-  ### by Modality
+  ### Graph by modality
   fig <- plot_ly(Teag, type = "scatter", mode = "lines", x = ~time, y = ~value,
-                 color = ~moda, name = ~variable, colors = dcol)
+                 color = ~moda, name = ~variable)
   fig <- plotly::layout(fig, title = paste(str_flatten(eag@names, " "),"by",moda),
            shapes = list(list(type = "line", y0 = 0, y1 = 1, yref = "paper",
                               x0 = 0, x1 = 0, line = list(color = "orange", dash="dot")),
                          list(type = "line", y0 = 0, y1 = 1, yref = "paper",
                               x0 = tmP/100, x1 = tmP/100, line = list(color = "orange", dash="dot"))),
            xaxis = list(title = 'Time (sec)'),
-           yaxis = list(title = 'EAG (mA)'),
+           yaxis = list(title = 'EAG (mV)'),
            legend = list(title=list(text='<b> VOC_concentration </b>'), x = 0.02, y = 0.9))
   fig <- add_markers(fig, x = ~Tdp, y = ~Idp, data = eag@depol, showlegend = FALSE)
 

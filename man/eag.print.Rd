@@ -4,12 +4,16 @@
 \alias{eag.print}
 \title{Print EAG}
 \usage{
-eag.print(eag, moda = "seq")
+eag.print(eag, moda = "seq", delet_seq = NULL, delet_con = NULL)
 }
 \arguments{
 \item{eag}{a eag objet}
 
 \item{moda}{a modality for group samples}
+
+\item{delet_seq}{character. Name of the sequences to be deleted}
+
+\item{delet_con}{character. Concentration to be deleted}
 }
 \value{
 a figure
