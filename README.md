@@ -16,79 +16,110 @@ You can install the development version of rEAD from
 ``` r
 # install.packages("devtools")
 devtools::install_github("JHuguenin/rEAG")
+library(rEAG)
 ```
 
 ## Utilisation
 
-Les deux premieres etapes, “Import” et “Regroupement” d’echantillons,
-doivent etre effectue selon la metodologie suivante.
+Le package rEAG est conçu pour importer et traiter les donnees EAG,
+issues du setup du CEFE (UMR 5175) de Montpellier composé d’un appareil
+Syntech,
 
-### Import
+### Plan d’experience
 
-Le package rEAD est conçu pour importer et traiter les donnees EAD du
-setup du CEFE (UMR 5175) de Montpellier. Ce setup est compose d’un EAG
-de la marque Syntech.  
-Les donnees de l’EAG sont disposees en colonnes structures de groupe de
-vecteurs subcompose le spectre FID et l’autre l’electroantennogramme
-EAD. Ces vecteurs ne sont pas indexes sur le temps. Les deux spectres
-FID respectifs permettent d’effectuer l’alignement et l’etalonnage.
-Trois difficultes supplementaire s’ajoutent a l’analyse :
+Le plan d’experience doit etre concu sous cette forme :
 
-<img src="https://raw.githubusercontent.com/JHuguenin/rEAG/master/inst/img/expdes_table.PNG" align="center"/>
+<img src="https://raw.githubusercontent.com/JHuguenin/rEAG/master/inst/img/expdes_table.png" align="center"/>
 
-et des trucs
+Le fichier peut etre genere vide grace a la commande suivante :
 
 ``` r
-library(rEAD)
-
-## gestion de repertoir de travail # 
-wd = "C:/Users/huguenin/Documents/R/rEAD_moustiques" # working directory
-setwd(wd)  # changement du repertoire dans R
-
-## 1er import #
-a01 <- import.GC.EAD(file_csv = "data/sample_01_EAD.csv")
+# create experimental design
+create.empty.exp.design(VOC = c("L","B","N"), control = "T", nS = 10)
 ```
+
+L’argument *VOC* est la sequence de molecules testes. Cette sequence est
+encadree par un *control*. *nS* represente le nombre d’echantillons.
+Chaque molecule sequence *VOC* doit etre separee par un espace mais peut
+etre composee d’une ou plusieurs lettres. A partir de ce fichier vide,
+des colonnes peuvent etre ajoutee librement a droite, selon vos besoins.
+
+Une fois cree, le plan d’experience doit etre importe :
+
+``` r
+# import experimental design
+expdes <- import.exp.design("Experimental_design")
+```
+
+### Import des EAG
+
+Un fichier EAG doit exister pour chaque ligne du plan d’experience. Ce
+fichier doit avoir le meme nom que celui de la colonne *File*
+correspondante. Les donnees d’un fichier EAG sont disposees en colonnes.
+Les deux premieres sont les moyennes du reste du fichier. Ensuite,
+chaque groupe de trois colonne correspond a une impulsion de l’EAG. Et
+les impulsions de VOC suivent evidemment la sequence precisee dans le
+plan d’experience.
+
+Pour chaque implusion, il y a trois colonnes (EAG, FID, DIG suivi d’un
+numero) :  
+- EAG : l’electroantennograme, en mV.  
+- FID : inutile dans cete analyse.  
+- DIG : le marqueur d’impulsion (+/- 0.5, sans unite).
+
+Importez chaque fichier :
+
+``` r
+# import data
+S_A1 <- eag.import(Sname = "Sample_A1")
+S_A2 <- eag.import(Sname = "Sample_A2")
+S_A3 <- eag.import(Sname = "Sample_A3")
+S_A4 <- eag.import(Sname = "Sample_A4")
+S_B1 <- eag.import(Sname = "Sample_B1")
+S_B2 <- eag.import(Sname = "Sample_B2")
+S_B3 <- eag.import(Sname = "Sample_B3")
+S_B4 <- eag.import(Sname = "Sample_B4")
+```
+
+A noter, quatre variables peuvent etre precisee :  
+- wd (= NULL) : le repertoire de travail. Si *NULL*, wd prend la valeur
+de *getwd()*.  
+- control (= “T”) : le nom du control. C’est le VOC qui permet de
+calculer la ligne de base.  
+- tmP (= 50) : la duree de l’impulsion. Depend du setup.  
+- ws (= 25) : la largeur de la fenetre pour le lissage.
 
 ### Regroupement des echantillons
 
 Une fois vos echantillons correctement importes, rassemblez les dans un
-objet mead, pour “multiple EAD”.
+objet meag, pour “multiple EAG”.
 
 ``` r
 ## rassembler les echantillons #
-list_test <- gcead.merge(a01, a02, a03, a04, a05, # tous les echantillons importes
-                         gcead_names = c("a01","a02","a03","a04","a05"), # leurs noms reduits
-                         RT_limits = c(6,18), # le temps tronques des parties inutiles
-                         gap_FID = 1) # un facteur multiplicatif pour le signal FID
+Sname <- c("S_A1", "S_A2", "S_A3", "S_A4",
+           "S_B1", "S_B2", "S_B3", "S_B4")
+Meag <- eag.merge(S_A1, S_A2, S_A3, S_A4,
+                  S_B1, S_B2, S_B3, S_B4,
+                  eag_names = Sname)
+View(Meag@depol) # to view results
 ```
 
-Essentiellement, la fonction *gcead.merge* utilise les signaux FID de
-chaque echantillon pour aligner toutes les donnes. L’argument
-*gcead\_names* permet de simplifier le nom des echantillons. Utilisez
-des noms courts (et sans regex, ou alors ne comptez pas sur moi pour
-venir vous aider). Le *RT\_limits* permet de zoomer directement sur les
-zones d’analyses. Le *gap\_FID* applique un facteur multiplicatif au
-signal FID afin d’augmenter la lisibilite des figures. Plusieus
-parametres detailles dans l’aide permettre d’affinier les pretraitements
-effectues sur les donnees FID. Les donnees peuvent etres visualisees
-grace a la fonction *mead.graph()*.
+Cette fonction ne fait que rassembler les resultats. Le tableau
+*<Meag@depol>* peut etre utilise directement pour vos analyses.
 
-Enfin, la fonction *m.EAD.norm* permet de mettre en forme les signaux
-EAD pour permettre l’analyse.
+### Graphiques
+
+Vous pouvez generer des graphes supplementaires grace a la fonction
+*eag.print()*. Vous pouvez grouper vos echantillons grace a l’argument
+*moda* qui peut être soit “con”, soit “seq” soit un autre titre de votre
+tableau du plan d’experience. Si vous souhaitez supprimer des VOC ou des
+concentrations, utilisez *delet\_seq* ou *delet\_con*.
 
 ``` r
-list_test <- m.EAD.norm(shift = -0.5, amplitude = 5, overlay = FALSE, pk_mat = list_test) # une mise en forme des signaux
-```
-
-### Analyses
-
-``` r
-## measure #
-depol_param <- pk.measure(list_test)  # calcul des intensites et de la duree de depolarisation des pics EAD
-# View(depol_param[[1]]) pour la moyenne
-# write.csv2(depol_param[[1]], "depol_param.csv") # pour sauvegarder le fichier csv
+eag.print(Meag, moda = "seq", delet_seq = "T")
+eag.print(Meag, moda = "seq", delet_con = c("0","0.1","1")
 ```
 
 Les bonnes idees, les remonter de bugs, les demandes de developpement,
-d’aide ou de colaboration peuvent etre envoyer a l’adresse renseignee
+d’aide ou de colaboration peuvent etre envoyees a l’adresse renseignee
 dans mon profil.
