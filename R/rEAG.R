@@ -55,10 +55,10 @@ import.exp.design <- function(ExpDes = "Experimental_Design_Name", wd = NULL){
   expdes <- read.csv2(paste0(wd,"/",ExpDes,".csv")) # plan d'experience
 
   # verification des colonnes
-  if (length(colnames(expdes)) < 4) stop("Experimental Design csv file must respect the format.
+  if (length(colnames(expdes)) < 3) stop("Experimental Design csv file must respect the format.
                                          Use 'create.empty.exp.design()' for a good practise")
-  fmr <- colnames(expdes)[1:4] %>% str_flatten()
-  if (fmr != "DateVOCconcentrationVOCseqFile" ) stop("Experimental Design csv file must respect the format.
+  fmr <- colnames(expdes)[1:3] %>% str_flatten()
+  if (fmr != "VOCconcentrationVOCseqFile" ) stop("Experimental Design csv file must respect the format.
   First columns must be 'Date' 'VOCconcentration' 'VOCseq' and 'File'. Use 'create.empty.exp.design()' for a good practise")
 
   # verification des formats
