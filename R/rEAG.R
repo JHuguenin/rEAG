@@ -58,8 +58,8 @@ import.exp.design <- function(ExpDes = "Experimental_Design_Name", wd = NULL){
   if (length(colnames(expdes)) < 3) stop("Experimental Design csv file must respect the format.
                                          Use 'create.empty.exp.design()' for a good practise")
   fmr <- colnames(expdes)[1:3] %>% str_flatten()
-  if (fmr != "VOCconcentrationVOCseqFile" ) stop("Experimental Design csv file must respect the format.
-  First columns must be 'Date' 'VOCconcentration' 'VOCseq' and 'File'. Use 'create.empty.exp.design()' for a good practise")
+  if (fmr != "FileVOCconcentrationVOCseq" ) stop("Experimental Design csv file must respect the format.
+  First columns must be 'VOCconcentration' 'VOCseq' and 'File'. Use 'create.empty.exp.design()' for a good practise")
 
   # verification des formats
   expdes$VOCconcentration <- as.numeric(expdes$VOCconcentration) # numeric
