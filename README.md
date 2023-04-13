@@ -64,7 +64,7 @@ plan d’experience.
 Pour chaque implusion, il y a trois colonnes (EAG, FID, DIG suivi d’un
 numero) :  
 - EAG : l’electroantennograme, en mV.  
-- FID : inutile dans cete analyse.  
+- FID : inutile dans cette analyse.  
 - DIG : le marqueur d’impulsion (+/- 0.5, sans unite).
 
 Importez chaque fichier :
@@ -87,7 +87,10 @@ de *getwd()*.
 - control (= “T”) : le nom du control. C’est le VOC qui permet de
 calculer la ligne de base.  
 - tmP (= 50) : la duree de l’impulsion. Depend du setup.  
-- ws (= 25) : la largeur de la fenetre pour le lissage.
+- tmD (= 2\*tmP) : la duree de la depolarisation. De base, 2xPulse mais
+peut augmenter si les depolarisation sont trop fortes. Dans l’ideal, il
+doit etre equivalent pour tout les echantillons. - ws (= 25) : la
+largeur de la fenetre pour le lissage.
 
 ### Regroupement des echantillons
 

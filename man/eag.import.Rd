@@ -4,14 +4,26 @@
 \alias{eag.import}
 \title{Import EAG}
 \usage{
-eag.import(Sname, control = "T", tmP = 50, wd = NULL, ws = 25)
+eag.import(
+  Sname,
+  expdes = ExDs,
+  control = "T",
+  tmP = 50,
+  tmD = NULL,
+  wd = NULL,
+  ws = 25
+)
 }
 \arguments{
 \item{Sname}{name of file.csv}
 
+\item{expdes}{name od data.fram Experimental Design}
+
 \item{control}{name of control (concentration zero)}
 
 \item{tmP}{duration of pulse (in centi second)}
+
+\item{tmD}{duration of depolarisation (in centi second)}
 
 \item{wd}{working directory}
 
