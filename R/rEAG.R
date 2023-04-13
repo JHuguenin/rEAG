@@ -488,7 +488,7 @@ eag.print <- function(eag, moda = "seq", delet_seq = NULL, delet_con = NULL){
            shapes = list(list(type = "line", y0 = 0, y1 = 1, yref = "paper",
                               x0 = 0, x1 = 0, line = list(color = "orange", dash="dot")),
                          list(type = "line", y0 = 0, y1 = 1, yref = "paper",
-                              x0 = tmP/100, x1 = tmP/100, line = list(color = "orange", dash="dot"))),
+                              x0 = eag@tmP/100, x1 = eag@tmP/100, line = list(color = "orange", dash="dot"))),
            xaxis = list(title = 'Time (sec)'),
            yaxis = list(title = 'EAG (mV)'),
            legend = list(title=list(text='<b> VOC_concentration </b>'), x = 0.02, y = 0.9))
