@@ -222,16 +222,18 @@ eag.import <- function(Sname, expdes = ExDs, control = "T", tmP = 50,tmD = NULL,
     # Union des matrix
     dP$con <- as.numeric(Cvoc[k])
     dP$seq <- VOCseq
+    ict <- which(dP$seq == control)
+    dP$Idp_norm <- dP$Idp - mean(dP$Idp[ict])
 
     # mise en forme
     colnames(matS) <- paste0("T_",Tp) # le temps
     fmr <- !is.na(matS[1,]) # pour le calcul du temps lors de la partie eag ci-dessus ... ouais c'est pas ouf
     matS <- matS[,!is.na(matS[1,])] # suppression des vagues du au lissage
-    resM <- rbind(resM,cbind(dP[,5:8], matS)) # maj de la matrice
+    resM <- rbind(resM,cbind(dP[,5:9], matS)) # maj de la matrice
   }
 
   # Mise en forme finale ####
-  depol <- resM[,1:4] # on garde l'intensité et le temps de depol, ainsi que la concentration et le VOC
+  depol <- resM[,1:5] # on garde l'intensité et le temps de depol, ainsi que la concentration et le VOC
   i_ctrl <- which(depol$seq == control) # l'index des controls
 
   depol$con[i_ctrl] <- 0 # mise a zero des temoins
@@ -241,8 +243,10 @@ eag.import <- function(Sname, expdes = ExDs, control = "T", tmP = 50,tmD = NULL,
 
   depol$Idp_adj <- abs(depol$Idp)
   depol$Idp_adj[i_ctrl] <- 0
+  depol$Idp_norm_adj <- abs(depol$Idp_norm)
+  depol$Idp_norm_adj[i_ctrl] <- 0
 
-  eag <- data.frame(time = Tp[fmr]/100, t(resM[,-(1:4)])) # data
+  eag <- data.frame(time = Tp[fmr]/100, t(resM[,-(1:5)])) # data
   setDT(eag) # transformation en data.table
   Teag <- melt(eag, id.vars = "time") # mise en forme pour plotly
   Teag$seq <- Teag$variable # ajout de la sequence des VOC

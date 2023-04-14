@@ -92,6 +92,13 @@ peut augmenter si les depolarisation sont trop fortes. Dans l’ideal, il
 doit etre equivalent pour tout les echantillons. - ws (= 25) : la
 largeur de la fenetre pour le lissage.
 
+Vous obtenez un objet S4 “eag” avec les electrogrammes dans la matrice
+@eag et les donnees calculees dans la matrice @depol :  
+- Idp : Intensite de la depolarisation - Tdp : Temps de depolarisation -
+con : Concentration du VOC - seq : Nom ou abreviation du VOC - Idp\_norm
+: Intensite normee - variable : nom racourci visible sur le graphe -
+Idp\_adj : Intensite absolue - Idp\_norm\_adj : Intensite normee absolut
+
 ### Regroupement des echantillons
 
 Une fois vos echantillons correctement importes, rassemblez les dans un
