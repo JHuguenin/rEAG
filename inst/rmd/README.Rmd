@@ -93,14 +93,14 @@ A noter, quatre variables peuvent etre precisee :
 
 Vous obtenez un objet S4 "eag" avec les electrogrammes dans la matrice @eag et les
 donnees calculees dans la matrice @depol :    
-- Idp : Intensite de la depolarisation
-- Tdp : Temps de depolarisation
-- con : Concentration du VOC
-- seq : Nom ou abreviation du VOC
-- Idp_norm : Intensite normee
-- variable : nom racourci visible sur le graphe
-- Idp_adj : Intensite absolue
-- Idp_norm_adj : Intensite normee absolut
+- Idp : Intensite de la depolarisation  
+- Tdp : Temps de depolarisation  
+- con : Concentration du VOC  
+- seq : Nom ou abreviation du VOC  
+- Idp_norm : Intensite normee  
+- variable : nom racourci visible sur le graphe  
+- Idp_adj : Intensite absolue  
+- Idp_norm_adj : Intensite normee absolut  
 
 ### Regroupement des echantillons
 
