@@ -48,7 +48,8 @@ Le fichier du plan d’experience doit comporter au moins quatre colonnes
 - *VOCconcentration* : la concentration du VOC.  
 - *VOCsequence* : la sequence des *VOC*. Chaque VOC doit etre separee
 par un espace  
-mais peut etre composee d’une ou plusieurs lettres.  
+mais peut etre composee d’une ou plusieurs lettres.
+
 A partir de ce fichier, des colonnes peuvent etre ajoutee librement a
 droite, selon vos besoins.
 
