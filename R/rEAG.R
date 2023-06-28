@@ -89,7 +89,7 @@ create.empty.exp.design <- function(VOC = c("L","B","N"), control = "T", nS = 10
   Vs <- NULL
   for(i in 1:nS) Vs <- c(Vs,str_flatten(c(control,sample(VOC),control)," "))
 
-  fmr <- data.frame(File = "", NumEAG = 1:nS, VOCconcentration = "", VOCseq =  Vs)
+  fmr <- data.frame(File = "", NumEAG = rep(1,nS), VOCconcentration = "", VOCseq =  Vs)
   write.csv2(fmr,"Exp_Design_Empty.csv",quote = FALSE,row.names = FALSE)
 }
 
@@ -113,7 +113,7 @@ create.empty.exp.design <- function(VOC = c("L","B","N"), control = "T", nS = 10
 #'
 #' @examples
 #' # B_137 <- eag.import("Bombus137_C_0ppb_1h", control = "T", tmP = 50, wd = NULL)
-eag.import <- function(Sname, expdes = ExDs, control = "T", tmP = 50,tmD = NULL, wd = NULL, ws =25){
+eag.import <- function(Sname, expdes = ExDs, control = "T", tmP = 50, tmD = NULL, wd = NULL, ws =25){
 
   # check ####
   if (is.null(wd) == TRUE) wd <- getwd()
@@ -143,6 +143,7 @@ eag.import <- function(Sname, expdes = ExDs, control = "T", tmP = 50,tmD = NULL,
   fmr <- which(Sname == expdes$File) # index dans le plan d'experience
   Cvoc <- expdes$VOCconcentration[fmr] # Concentrations associees
   Svoc <- expdes$VOCseq[fmr] # sequences VOC associees
+  NumEAG <- expdes$NumEAG[fmr] # ID of associated sequence
 
   # Figure des EAG brutes ####
   dt_eag <- eag  # data
@@ -163,7 +164,7 @@ eag.import <- function(Sname, expdes = ExDs, control = "T", tmP = 50,tmD = NULL,
 
   # Traitement de chaque signal ####
   resM <- NULL # matrice des resultats
-  for(k in 1:neag){ # k=1
+  for(k in NumEAG){ # k=1
 
     # index effectif du fichier signal
     i <- seq(length.out = neag,by = 3)[k]

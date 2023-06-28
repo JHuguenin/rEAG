@@ -47,9 +47,16 @@ Le fichier peut etre genere vide grace a la commande suivante :
 create.empty.exp.design(VOC = c("L","B","N"), control = "T", nS = 10)
 ```
 L'argument *VOC* est la sequence de molecules testes. Cette sequence est encadree 
-par un *control*. *nS* represente le nombre d'echantillons. Chaque molecule sequence *VOC* doit
-etre separee par un espace mais peut etre composee d'une ou plusieurs lettres. A partir de ce
-fichier vide, des colonnes peuvent etre ajoutee librement a droite, selon vos besoins. 
+par un *control*. *nS* represente le nombre d'echantillons.  
+
+Le fichier du plan d'experience doit comporter au moins quatre colonnes :  
+- *File* : le nom du fichier EAG associe  
+- *NumEAG* : le numero de l'EAG associe dans le fichier  
+- *VOCconcentration* : la concentration du VOC.   
+- *VOCsequence* : la sequence des *VOC*. Chaque VOC doit etre separee par un espace   
+mais peut etre composee d'une ou plusieurs lettres.   
+
+A partir de ce fichier, des colonnes peuvent etre ajoutee librement a droite, selon vos besoins. 
 
 Une fois cree, le plan d'experience doit etre importe :
 
