@@ -40,9 +40,18 @@ create.empty.exp.design(VOC = c("L","B","N"), control = "T", nS = 10)
 
 L’argument *VOC* est la sequence de molecules testes. Cette sequence est
 encadree par un *control*. *nS* represente le nombre d’echantillons.
-Chaque molecule sequence *VOC* doit etre separee par un espace mais peut
-etre composee d’une ou plusieurs lettres. A partir de ce fichier vide,
-des colonnes peuvent etre ajoutee librement a droite, selon vos besoins.
+
+Le fichier du plan d’experience doit comporter au moins quatre colonnes
+:  
+- *File* : le nom du fichier EAG associe  
+- *NumEAG* : le numero de l’EAG associe dans le fichier  
+- *VOCconcentration* : la concentration du VOC.  
+- *VOCsequence* : la sequence des *VOC*. Chaque VOC doit etre separee
+par un espace  
+mais peut etre composee d’une ou plusieurs lettres.
+
+A partir de ce fichier, des colonnes peuvent etre ajoutee librement a
+droite, selon vos besoins.
 
 Une fois cree, le plan d’experience doit etre importe :
 
@@ -98,10 +107,10 @@ Vous obtenez un objet S4 “eag” avec les electrogrammes dans la matrice
 - Tdp : Temps de depolarisation  
 - con : Concentration du VOC  
 - seq : Nom ou abreviation du VOC  
-- Idp\_norm : Intensite normee  
+- Idp_norm : Intensite normee  
 - variable : nom racourci visible sur le graphe  
-- Idp\_adj : Intensite absolue  
-- Idp\_norm\_adj : Intensite normee absolut
+- Idp_adj : Intensite absolue  
+- Idp_norm_adj : Intensite normee absolut
 
 ### Regroupement des echantillons
 
@@ -127,7 +136,7 @@ Vous pouvez generer des graphes supplementaires grace a la fonction
 *eag.print()*. Vous pouvez grouper vos echantillons grace a l’argument
 *moda* qui peut être soit “con”, soit “seq” soit un autre titre de votre
 tableau du plan d’experience. Si vous souhaitez supprimer des VOC ou des
-concentrations, utilisez *delet\_seq* ou *delet\_con*.
+concentrations, utilisez *delet_seq* ou *delet_con*.
 
 ``` r
 eag.print(Meag, moda = "seq", delet_seq = "T")
