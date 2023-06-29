@@ -144,6 +144,9 @@ eag.import <- function(Sname, expdes = ExDs, control = "T", tmP = 50, tmD = NULL
   Cvoc <- expdes$VOCconcentration[fmr] # Concentrations associees
   Svoc <- expdes$VOCseq[fmr] # sequences VOC associees
   NumEAG <- expdes$NumEAG[fmr] # ID of associated sequence
+  if(neag != length(NumEAG)) stop(paste("the number of lines named",
+    Sname,"in the experimental design does not correspond to the number of EAGs
+    in the",Sname,"file."))
 
   # Figure des EAG brutes ####
   dt_eag <- eag  # data
