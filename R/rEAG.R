@@ -149,6 +149,10 @@ eag.import <- function(Sname, expdes = ExDs, control = "T", tmP = 50, tmD = NULL
     in the",Sname,"file."))
 
   # Figure des EAG brutes ####
+  fmr <- eag[1,]
+  fmr <- matrix(rep(as.numeric(fmr),tmP*2),nrow = tmP*2,ncol = length(fmr),byrow = TRUE,dimnames = list(1:(tmP*2),colnames(fmr))) %>% as.data.frame()
+  eag <- rbind(fmr,eag)
+
   dt_eag <- eag  # data
   dt_eag$time <- (1:nrow(eag))/100
   dt_eag <- dt_eag[,-grep("FID",colnames(dt_eag))]
