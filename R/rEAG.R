@@ -20,7 +20,7 @@
 NULL
 
 # Library ####
-
+#
 # library(plotly)
 # library(stringr)
 # library(pracma)
@@ -48,6 +48,7 @@ import.exp.design <- function(ExpDes = "Experimental_Design_Name", wd = NULL){
   if (is.null(wd) == TRUE) wd <- getwd()
   if (!is.character(wd)) stop("'wd' must be character")
   if (!is.character(ExpDes)) stop("'ExpDes' must be character")
+  if (str_ends(ExpDes,".csv")) ExpDes <- str_remove(ExpDes,".csv")
   if (length(ExpDes) != 1) stop("Length of 'ExpDes' must be 1.")
 
   # import
@@ -76,21 +77,64 @@ import.exp.design <- function(ExpDes = "Experimental_Design_Name", wd = NULL){
 #'
 #' @param VOC VOC names
 #' @param control control name
-#' @param nS number of pre-drawn sequences
+#' @param nS number of pre-drawn samples
+#' @param nC number of pre-drawn concentration for each sample or a vector with concentration
 #' @param wd working directory
+#' @param ExpDesName name of experiment
 #'
 #' @return a csv file
 #' @export
 #'
 #' @examples
-#' create.empty.exp.design(VOC = c("L","B","N"), control = "T", nS = 10)
-create.empty.exp.design <- function(VOC = c("L","B","N"), control = "T", nS = 10, wd = NULL){
+#' create.empty.exp.design(VOC = c("L","B","N"), control = "C", nS = 4, nC = 3)
+#' create.empty.exp.design(VOC = c("L","B","N"), control = "C", nS = 3, nC = c(0.1,1,10,100))
+create.empty.exp.design <- function(VOC = c("L","B","N"), control = "C",
+                                    nS = 5, nC = 4,
+                                    wd = NULL, ExpDesName = NULL){
+  # check ####
+  if (is.null(wd) == TRUE) wd <- getwd()
+  if (is.null(ExpDesName)) ExpDesName <- "Exp_Design_Empty"
+  if (length(nC)>1) con <- rep(nC)
+  if (length(nC)>1) nC <- length(nC)
 
   Vs <- NULL
-  for(i in 1:nS) Vs <- c(Vs,str_flatten(c(control,sample(VOC),control)," "))
+  for(i in 1:(nS*nC))  Vs <- c(Vs,str_flatten(c(control,sample(VOC),control)," "))
+  if(!exists("con")) con <- rep(10^((1:nC)-2),nS)
 
-  fmr <- data.frame(File = "", NumEAG = rep(1,nS), VOCconcentration = "", VOCseq =  Vs)
-  write.csv2(fmr,"Exp_Design_Empty.csv",quote = FALSE,row.names = FALSE)
+  fmr <- data.frame(File = paste("Sample",rep(1:nS,each = nC)),
+                    NumEAG = rep(1:nC,nS), VOCconcentration = con, VOCseq =  Vs)
+  write.csv2(fmr,paste0(wd,"/",ExpDesName,".csv"),quote = FALSE,row.names = FALSE)
+}
+
+
+#' Create a structure experimental
+#'
+#' Genere une structure correct pour l'utilisation du package. Pour les détails,
+#' regardez create.empty.exp.design.
+#'
+#' @param ExpDesign Name of experiment
+#' @param wd working directory
+#' @param VOC VOC names
+#' @param control control name
+#' @param nS number of pre-drawn samples
+#' @param nC number of pre-drawn concentration for each sample
+#'
+#' @return a csv file
+#' @export
+#'
+#' @examples
+#' create.experiment(VOC = c("L","B","N"), control = "C", nS = 5, nC = c(0.1,1,10,100))
+create.experiment <- function(ExpDesign = "exemple", wd = NULL, VOC = c("L","B","N"),
+                              control = "C", nS = 5, nC = 4){
+
+  # check ####
+  if (is.null(wd) == TRUE) wd <- getwd()
+  if (("experimental_design" %in% dir(wd))==FALSE) dir.create(paste0(wd,"/experimental_design"))
+  if ((ExpDesign %in% dir(wd))==FALSE) dir.create(paste0(wd,"/",ExpDesign))
+  arg_l <- list(VOC = VOC, control = control, nS = nS, nC = nC)
+
+  create.empty.exp.design(VOC = arg_l$VOC, control = arg_l$control, nS = arg_l$nS,
+                          nC = arg_l$nC, ExpDesName = ExpDesign,wd = "experimental_design")
 }
 
 # Import EAG ####
@@ -119,8 +163,10 @@ eag.import <- function(Sname, expdes = ExDs, control = "T", tmP = 50, tmD = NULL
   if (is.null(wd) == TRUE) wd <- getwd()
   if (is.null(tmD) == TRUE) tmD <- 2*tmP
   if (!is.character(wd)) stop("'wd' must be character")
-  if (("figures" %in% dir(wd))==FALSE) dir.create(paste0(wd,"/figures"))
   if (!is.character(Sname)) stop("'Sname' must be character")
+  if (!is.character(Sname)) stop("'Sname' must be character")
+  if (str_ends(Sname,".csv")) Sname <- str_remove(Sname,".csv")
+  if ((paste0("fig_",Sname) %in% dir(wd))==FALSE) dir.create(paste0(wd,"/fig_",Sname))
   if (!is.numeric(ws)) stop("'ws' must be numeric")
   if (!is.numeric(tmP)) stop("'tmP' must be numeric")
   if (!is.numeric(tmD)) stop("'tmD' must be numeric")
@@ -140,34 +186,45 @@ eag.import <- function(Sname, expdes = ExDs, control = "T", tmP = 50, tmD = NULL
   fmr <- str_split(Sname,"/",simplify = TRUE)
   Sname <- as.character(fmr[length(fmr)])
 
+
   fmr <- which(Sname == expdes$File) # index dans le plan d'experience
+  if(length(fmr)==0) stop("Sname can't match with the experimental design.")
   Cvoc <- expdes$VOCconcentration[fmr] # Concentrations associees
   Svoc <- expdes$VOCseq[fmr] # sequences VOC associees
   NumEAG <- expdes$NumEAG[fmr] # ID of associated sequence
-  if(neag != length(NumEAG)) stop(paste("the number of lines named",
-    Sname,"in the experimental design does not correspond to the number of EAGs
+  if(neag != length(NumEAG))stop(paste("the number of lines named", Sname,
+    "in the experimental design does not correspond to the number of EAGs
     in the",Sname,"file."))
 
   # Figure des EAG brutes ####
+  # start buffer
   fmr <- eag[1,]
   fmr <- matrix(rep(as.numeric(fmr),tmP*2),nrow = tmP*2,ncol = length(fmr),byrow = TRUE,dimnames = list(1:(tmP*2),colnames(fmr))) %>% as.data.frame()
   eag <- rbind(fmr,eag)
 
+  # end buffer
+  fmr <- eag[dim(eag)[1],]
+  fmr <- matrix(rep(as.numeric(fmr),tmD*2), nrow = tmD*2, ncol = length(fmr),
+                byrow = TRUE, dimnames = list(1:(tmD*2),colnames(fmr))) %>% as.data.frame()
+  eag <- rbind(eag,fmr)
+
+  # analyse
   dt_eag <- eag  # data
   dt_eag$time <- (1:nrow(eag))/100
   dt_eag <- dt_eag[,-grep("FID",colnames(dt_eag))]
   setDT(dt_eag) # transformation en data.table (???)
   Teag <- melt(dt_eag, id.vars = "time") # mise en forme pour plotly
   Teag$num <- Teag$variable # ajout des concentrations
-  levels(Teag$num) <- str_replace(levels(Teag$num),"DIG","EAD")
+  levels(Teag$num) <- str_replace(levels(Teag$num),"DIG","EAG")
   fig <- plot_ly(Teag, type = "scatter", mode = "lines", x = ~time, y = ~value,
                  color = ~num, name = ~variable)
   fig <- plotly::layout(fig, title = Sname,
                         xaxis = list(title = 'Time (sec)'),
                         yaxis = list(title = 'EAG (mV)'))
-  htmlwidgets::saveWidget(fig, paste0(wd,"/figures/options_graph_dy.html"), selfcontained = TRUE)
-  file.rename(from = paste0(wd,"/figures/options_graph_dy.html"),
-              to = paste0(wd,"/figures/",Sname,"_raw.html"))
+  htmlwidgets::saveWidget(fig, paste0(wd,"/fig_",Sname,"/options_graph_dy.html"), selfcontained = TRUE)
+  file.rename(from = paste0(wd,"/fig_",Sname,"/options_graph_dy.html"),
+              to = paste0(wd,"/fig_",Sname,"/",Sname,"_raw.html"))
+  fig_raw <- fig
 
   # Traitement de chaque signal ####
   resM <- NULL # matrice des resultats
@@ -183,8 +240,13 @@ eag.import <- function(Sname, expdes = ExDs, control = "T", tmP = 50, tmD = NULL
     pulse <- eag[,i+2] - c(eag[-1,i+2],-0.5)
     dP <- data.frame(str = which(pulse == -1),
                      end = which(pulse == -1)+tmP) # position des pulses start et end
-    if(length(VOCseq) != nrow(dP) ) stop("The 'VOC sequence' of experimental design does not correspond to the number of pulses")
-
+    if(length(VOCseq) != nrow(dP)){
+      print(fig_raw)
+      cat(Sname)
+      for(k in NumEAG) cat(paste0("\nDIG.",k,", seq : ",Svoc[k]))
+      cat("\n")
+      stop("The 'VOC sequence' of experimental design does not correspond to the number of pulses")
+    }
     # name pulse
     rownames(dP) <- paste0(VOCseq, ave(VOCseq, VOCseq, FUN = seq), "_c",Cvoc[k])
 
@@ -277,15 +339,15 @@ eag.import <- function(Sname, expdes = ExDs, control = "T", tmP = 50, tmD = NULL
                 yaxis = list(title = 'EAG (mV)'),
                 legend = list(title=list(text='<b> VOC_concentration </b>'), x = 0.02, y = 0.9))
   fig <- add_markers(fig, x = ~Tdp, y = ~Idp, data = depol, showlegend= FALSE)
-  htmlwidgets::saveWidget(fig, paste0(wd,"/figures/options_graph_dy.html"), selfcontained = TRUE)
-  file.rename(from = paste0(wd,"/figures/options_graph_dy.html"),
-              to = paste0(wd,"/figures/",Sname,"_by_concentration.html"))
+  htmlwidgets::saveWidget(fig, paste0(wd,"/fig_",Sname,"/options_graph_dy.html"), selfcontained = TRUE)
+  file.rename(from = paste0(wd,"/fig_",Sname,"/options_graph_dy.html"),
+              to = paste0(wd,"/fig_",Sname,"/",Sname,"_by_concentration.html"))
 
   # matplot for fixed plot
   depol$col_C <- depol$con
   levels(depol$col_C) <- RColorBrewer::brewer.pal(length(unique(depol$con)),"Dark2")
 
-  tiff(filename = paste0(wd,"/figures/",Sname,"_by_concentration.tiff"), width = 1000, height = 580)
+  tiff(filename = paste0(wd,"/fig_",Sname,"/",Sname,"_by_concentration.tiff"), width = 1000, height = 580)
     par(mar = c(5,5,3,0.1), cex.main=2, cex.lab = 2, cex.axis = 2, mgp = c(3.5,1.5,0))
 
       matplot(eag$time,eag[,-1], type = "l", lty = 1, col = as.character(depol$col_C), lwd = 2,
@@ -309,15 +371,15 @@ eag.import <- function(Sname, expdes = ExDs, control = "T", tmP = 50, tmD = NULL
            legend = list(title=list(text='<b> VOC_concentration </b>'),
                          x = 0.02, y = 0.9))
   fig <- add_markers(fig, x = ~Tdp, y = ~Idp, data = depol, showlegend= FALSE)
-  htmlwidgets::saveWidget(fig, paste0(wd,"/figures/options_graph_dy.html"), selfcontained = TRUE)
-  file.rename(from = paste0(wd,"/figures/options_graph_dy.html"),
-              to = paste0(wd,"/figures/",Sname,"_by_VOC.html"))
+  htmlwidgets::saveWidget(fig, paste0(wd,"/fig_",Sname,"/options_graph_dy.html"), selfcontained = TRUE)
+  file.rename(from = paste0(wd,"/fig_",Sname,"/options_graph_dy.html"),
+              to = paste0(wd,"/fig_",Sname,"/",Sname,"_by_VOC.html"))
 
   # matplot for fixed plot
   depol$col_S <- depol$seq
   levels(depol$col_S) <- RColorBrewer::brewer.pal(length(unique(depol$seq)),"Accent")
 
-  tiff(filename = paste0(wd,"/figures/",Sname,"_by_sequence.tiff"), width = 1000, height = 580)
+  tiff(filename = paste0(wd,"/fig_",Sname,"/",Sname,"_by_sequence.tiff"), width = 1000, height = 580)
     par(mar = c(5,5,3,0.1), cex.main=2, cex.lab = 2, cex.axis = 2, mgp = c(3.5,1.5,0))
 
       matplot(eag$time,eag[,-1], type = "l", lty = 1, col = as.character(depol$col_S), lwd = 2,
@@ -359,9 +421,11 @@ eag.import <- function(Sname, expdes = ExDs, control = "T", tmP = 50, tmD = NULL
 eag.merge <- function(..., eag_names = NULL, tmP = NULL, wd = NULL, print.graph = FALSE){
 
   ls_eag <- list(...) # ls_eag <- list(B_137, B_170, B_171, B_172)
+  if(length(ls_eag)==1) ls_eag <- ls_eag[[1]]
+  names(ls_eag) <- NULL
 
   # check
-  sapply(ls_eag, function(X) if (class(X) != "eag") stop("variables must be a eag S4 object"))
+  sapply(ls_eag, function(X) if (class(X)[1] != "eag") stop("variables must be a eag S4 object"))
   if (is.null(eag_names)) eag_names <- sapply(ls_eag, function(X) return(X@names))
   if (!is.character(eag_names))  stop("eag_names must be a character")
   if (length(eag_names) != length(ls_eag)) stop("Length of eag_names must be egal to length of eag objects")
@@ -371,7 +435,6 @@ eag.merge <- function(..., eag_names = NULL, tmP = NULL, wd = NULL, print.graph 
     wd <- wd[1]
   }
   if (!is.character(wd)) stop("'wd' must be character")
-  if (("figures" %in% dir(wd))==FALSE) dir.create(paste0(wd,"/figures"))
   if (is.null(tmP) == TRUE){
     tmP <- lapply(ls_eag, function(X) return(X@tmP)) %>% unlist() %>% unique()
     if (length(tmP) != 1) print(paste("Several 'tmP' have been detected. The current 'tmP' is :",tmP[1]))
@@ -380,6 +443,7 @@ eag.merge <- function(..., eag_names = NULL, tmP = NULL, wd = NULL, print.graph 
   if (!is.numeric(tmP)) stop("'tmP' must be numeric")
   if (length(tmP) != 1) stop("Length of 'tmP' must be 1.")
   if (!is.logical(print.graph)) stop("'print.graph must be a logical")
+  if(print.graph == TRUE) if (("figures" %in% dir(wd))==FALSE) dir.create(paste0(wd,"/figures"))
 
   # mise en forme
   leag <- length(ls_eag)
@@ -447,6 +511,66 @@ eag.merge <- function(..., eag_names = NULL, tmP = NULL, wd = NULL, print.graph 
   # export
   return(new(Class = "eag", depol = depol, eag = eag, tmP = tmP, wd = wd, names = eag_names))
 }
+
+# Auto merge ####
+# toujours plus flemmard
+
+#' Auto merge EAG
+#'
+#' @param expdes name of experiment in the folder 'experimental_design'
+#' @param control name of control (concentration zero)
+#' @param tmP duration of pulse (in centi second)
+#' @param tmD duration of depolarisation (in centi second)
+#' @param ws width selection
+#' @param wd working directory
+#' @param print.graph.total logical. Print or not a graph for view depolarisation, group by seq and by concentration
+#'
+#' @return a S4 eag object
+#' @export
+#'
+#' @examples
+#' # In 'experimental_design' folder, there is a ExpTestOO.csv corresponding at the experimental_design.
+#' # Another folder, which named 'ExpTestOO' contains datas.
+#' # ExpTestOO <- eag.compilation(expdes = "ExpTestOO", tmD = 200)
+eag.compilation <- function(expdes, control = "T", tmP = 50, tmD = NULL, ws =25, wd = NULL, print.graph.total = TRUE){
+
+  # check ####
+  if (is.null(wd) == TRUE) wd <- getwd()
+  if (is.null(tmD) == TRUE) tmD <- 2*tmP
+  if (!is.character(wd)) stop("'wd' must be character")
+  if (("figures" %in% dir(wd))==FALSE) dir.create(paste0(wd,"/figures"))
+  if (!is.character(expdes)) stop("Experimental Design must be a character")
+  if ((expdes %in% dir(wd))==FALSE) "the data file must have the same name of the experimental design"
+  if (!is.numeric(ws)) stop("'ws' must be numeric")
+  if (!is.numeric(tmP)) stop("'tmP' must be numeric")
+  if (!is.numeric(tmD)) stop("'tmD' must be numeric")
+  if (!is.character(control)) stop("'control' must be a character")
+  if (length(ws) != 1) stop("Length of 'ws' must be 1.")
+  if (length(tmP) != 1) stop("Length of 'tmP' must be 1.")
+  if (length(tmD) != 1) stop("Length of 'tmD' must be 1.")
+  if (length(control) != 1) stop("Length of 'control' must be 1.")
+  if (!is.logical(print.graph.total)) stop("'print.graph.total must be a logical")
+
+  # import experimental design ####
+  ExDs <- import.exp.design(expdes, wd = paste0(wd,"/experimental_design"))
+
+  # import data ####
+  sampl <- dir(paste0(wd,"/",expdes)) %>% str_remove_all(".csv")
+  if(length(grep("fig",sampl)) > 0) sampl <- sampl[-grep("fig",sampl)]
+  all_eag <- sapply(sampl, eag.import, wd = paste0(wd,"/",expdes), expdes = ExDs)
+
+  # rassembler les echantillons ####
+  eag_n <- sampl # nickname
+  suffixe <- str_split(sampl,"_") %>% lapply(function(X) X[length(X)]) %>% unlist() %>% unique()
+  for(suf in suffixe) if(!is.na(as.Date(suf,format = "%d%m%y"))) eag_n <- str_remove_all(eag_n,paste0("_",suf))
+
+  wod <- wd
+  Meag <- eag.merge(all_eag,eag_names = eag_n, wd = wod, print.graph = print.graph.total)
+  write.csv2(Meag@depol,paste0(expdes,"_res_all.csv"))
+
+  return(Meag)
+}
+
 
 # Print EAG ####
 

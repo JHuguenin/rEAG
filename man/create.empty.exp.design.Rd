@@ -6,9 +6,11 @@
 \usage{
 create.empty.exp.design(
   VOC = c("L", "B", "N"),
-  control = "T",
-  nS = 10,
-  wd = NULL
+  control = "C",
+  nS = 5,
+  nC = 4,
+  wd = NULL,
+  ExpDesName = NULL
 )
 }
 \arguments{
@@ -16,9 +18,13 @@ create.empty.exp.design(
 
 \item{control}{control name}
 
-\item{nS}{number of pre-drawn sequences}
+\item{nS}{number of pre-drawn samples}
+
+\item{nC}{number of pre-drawn concentration for each sample or a vector with concentration}
 
 \item{wd}{working directory}
+
+\item{ExpDesName}{name of experiment}
 }
 \value{
 a csv file
@@ -29,5 +35,6 @@ lignes peuvent etre ajoutees a ce fichier si necessaire. Les nouvelles colonnes
 doivent toutes etre ajoutees sur la droite.
 }
 \examples{
-create.empty.exp.design(VOC = c("L","B","N"), control = "T", nS = 10)
+create.empty.exp.design(VOC = c("L","B","N"), control = "C", nS = 4, nC = 3)
+create.empty.exp.design(VOC = c("L","B","N"), control = "C", nS = 3, nC = c(0.1,1,10,100))
 }

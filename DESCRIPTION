@@ -1,7 +1,7 @@
 Package: rEAG
 Type: Package
 Title: analyze data from EAG
-Version: 0.1.6
+Version: 0.1.7
 Authors@R: 
     person(given = "Joris",
            family = "Huguenin",
