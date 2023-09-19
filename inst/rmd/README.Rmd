@@ -32,7 +32,7 @@ library(rEAG)
 
 ## Utilisation
 
-Le package rEAG est conçu pour importer et traiter les donnees EAG, issues du setup du CEFE (UMR 5175) de Montpellier composé d'un appareil Syntech,
+Le package rEAG est conçu pour importer et traiter les donnees EAG, issues du setup du CEFE (UMR 5175) de Montpellier composé d'un appareil Syntech. 
 
 ### Plan d'experience
 
@@ -44,10 +44,13 @@ Le plan d'experience doit etre concu sous cette forme :
 Le fichier peut etre genere vide grace a la commande suivante : 
 ```{r create_exp_design, eval = FALSE}
 # create experimental design
-create.empty.exp.design(VOC = c("L","B","N"), control = "T", nS = 10)
+create.empty.exp.design(VOC = c("L","B","N"), control = "C", nS = 3, nC = 4)
+# or
+create.empty.exp.design(VOC = c("L","B","N"), control = "C", nS = 3, nC = c(0.1,1,10,100))
 ```
 L'argument *VOC* est la sequence de molecules testes. Cette sequence est encadree 
-par un *control*. *nS* represente le nombre d'echantillons.  
+par un *control*. *nS* represente le nombre d'echantillons souhaites tandis que nC 
+represente le nombre de concentration differentes durant l'experience.
 
 Le fichier du plan d'experience doit comporter au moins quatre colonnes :  
 - *File* : le nom du fichier EAG associe  
@@ -136,6 +139,27 @@ supprimer des VOC ou des concentrations, utilisez *delet_seq* ou *delet_con*.
 eag.print(Meag, moda = "seq", delet_seq = "T")
 eag.print(Meag, moda = "seq", delet_con = c("0","0.1","1")
 ```
+
+### Automatiser les analyses
+
+En respectant la structure demande, vous pouvez analyser de nombreux echantillons en une seule ligne
+de commande. Un exemple peut etre suivi grace a cette commande :
+
+```{r structure, eval = FALSE}
+create.experiment(VOC = c("L","B","N"), control = "C", nS = 5, nC = c(0.1,1,10,100))
+```
+
+Le dossier *experimental_design* est cree. Les plans d'experiences doivent etre places
+dans ce dossier. Un autre dossier est cree avec le meme nom que le fichier csv de votre plan d'experience.
+Les fichiers EAG doivent etre places dans ce fichier. Ensuite, il suffit d'executer cette fonction,
+en modifiant les parametres comme explique ci-dessus. Cette fonction combine les 
+fonctions *eag.import* et *eag.merge*. 
+
+```{r compile, eval = FALSE}
+exemple <- eag.compilation(expdes = "exemple", tmD = 200)
+```
+
+### Outro
 
 Les bonnes idees, les remonter de bugs, les demandes de developpement, d'aide ou de colaboration peuvent etre envoyees a l'adresse renseignee dans mon profil. 
 
