@@ -345,7 +345,7 @@ eag.import <- function(Sname, expdes = ExDs, control = "T", tmP = 50, tmD = NULL
 
   # matplot for fixed plot
   depol$col_C <- depol$con
-  levels(depol$col_C) <- RColorBrewer::brewer.pal(length(unique(depol$con)),"Dark2")
+  levels(depol$col_C) <- ncolor(length(unique(depol$con)))
 
   tiff(filename = paste0(wd,"/fig_",Sname,"/",Sname,"_by_concentration.tiff"), width = 1000, height = 580)
     par(mar = c(5,5,3,0.1), cex.main=2, cex.lab = 2, cex.axis = 2, mgp = c(3.5,1.5,0))
@@ -377,7 +377,7 @@ eag.import <- function(Sname, expdes = ExDs, control = "T", tmP = 50, tmD = NULL
 
   # matplot for fixed plot
   depol$col_S <- depol$seq
-  levels(depol$col_S) <- RColorBrewer::brewer.pal(length(unique(depol$seq)),"Accent")
+  levels(depol$col_S) <- ncolor(length(unique(depol$seq)))
 
   tiff(filename = paste0(wd,"/fig_",Sname,"/",Sname,"_by_sequence.tiff"), width = 1000, height = 580)
     par(mar = c(5,5,3,0.1), cex.main=2, cex.lab = 2, cex.axis = 2, mgp = c(3.5,1.5,0))
@@ -635,6 +635,19 @@ eag.print <- function(eag, moda = "seq", delet_seq = NULL, delet_con = NULL){
   htmlwidgets::saveWidget(fig, paste0(wd,"/figures/options_graph_dy.html"), selfcontained = TRUE)
   file.rename(from = paste0(wd,"/figures/options_graph_dy.html"),
               to = paste0(wd,"/figures/eag_by_",moda,".html"))
+}
+
+
+#' gest.color
+#'
+#' a simple function for print results of EAG
+#'
+#' @param nC a number
+#' @return color
+#' @noRd
+ncolor <- function(nC){
+c(brewer.pal(8,"Accent"), brewer.pal(8,"Dark2"),
+  brewer.pal(8,"Set1"), brewer.pal(8,"Set2"))[sample(8*4,nC)]
 }
 
 # Gestion des 'S4' ####
