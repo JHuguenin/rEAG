@@ -570,9 +570,18 @@ eag.compilation <- function(expdes, control = "T", tmP = 50, tmD = NULL, ws =25,
   ExDs <- import.exp.design(expdes, wd = paste0(wd,"/experimental_design"))
 
   # import data ####
-  sampl <- dir(paste0(wd,"/",expdes)) %>% str_remove_all(".csv")
+  fmr <- grep(".csv", dir(paste0(wd,"/",expdes)))
+  sampl <- dir(paste0(wd,"/",expdes))[fmr] %>% str_remove_all(".csv")
   if(length(grep("fig",sampl)) > 0) sampl <- sampl[-grep("fig",sampl)]
-  all_eag <- sapply(sampl, eag.import, wd = paste0(wd,"/",expdes), expdes = ExDs)
+
+  all_eag <- list()
+  for(i in 1:length(sampl)){# i=1
+    all_eag[[i]] <- eag.import(sampl[i],control = control, tmP = tmP, tmD = tmD,
+                                ws = ws, wd = paste0(wd,"/",expdes), expdes = ExDs)
+    print(paste("Import EAG :",i,"/",length(sampl)))
+  }
+  names(all_eag) <- sampl
+  # all_eag <- sapply(sampl, eag.import, wd = paste0(wd,"/",expdes), expdes = ExDs)
 
   # rassembler les echantillons ####
   eag_n <- sampl # nickname

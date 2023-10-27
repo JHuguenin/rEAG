@@ -146,13 +146,14 @@ En respectant la structure demande, vous pouvez analyser de nombreux echantillon
 de commande. Un exemple peut etre suivi grace a cette commande :
 
 ```{r structure, eval = FALSE}
-create.experiment(VOC = c("L","B","N"), control = "C", nS = 5, nC = c(0.1,1,10,100))
+create.experiment(ExpDesign = "exemple", VOC = c("L","B","N"), 
+                  control = "C", nS = 5, nC = c(0.1,1,10,100))
 ```
 
 Le dossier *experimental_design* est cree. Les plans d'experiences doivent etre places
 dans ce dossier. Un autre dossier est cree avec le meme nom que le fichier csv de votre plan d'experience.
-Les fichiers EAG doivent etre places dans ce fichier. Ensuite, il suffit d'executer cette fonction,
-en modifiant les parametres comme explique ci-dessus. Cette fonction combine les 
+Dans le cas en exemple, le nom du fichier s'appelle *exemple.csv* et le nom du dossier est *exemple* mais
+cela peut être changé par l'utilisateur. Les fichiers EAG doivent etre places dans ce fichier. Ensuite, il suffit d'executer cette fonction, en modifiant les parametres comme explique ci-dessus. Cette fonction combine les 
 fonctions *eag.import* et *eag.merge*. 
 
 ```{r compile, eval = FALSE}
