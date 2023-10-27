@@ -216,6 +216,8 @@ eag.import <- function(Sname, expdes = ExDs, control = "T", tmP = 50, tmD = NULL
   Teag <- melt(dt_eag, id.vars = "time") # mise en forme pour plotly
   Teag$num <- Teag$variable # ajout des concentrations
   levels(Teag$num) <- str_replace(levels(Teag$num),"DIG","EAG")
+  oldw <- getOption("warn")
+  options(warn = -1)
   fig <- plot_ly(Teag, type = "scatter", mode = "lines", x = ~time, y = ~value,
                  color = ~num, name = ~variable)
   fig <- plotly::layout(fig, title = Sname,
@@ -225,6 +227,7 @@ eag.import <- function(Sname, expdes = ExDs, control = "T", tmP = 50, tmD = NULL
   file.rename(from = paste0(wd,"/fig_",Sname,"/options_graph_dy.html"),
               to = paste0(wd,"/fig_",Sname,"/",Sname,"_raw.html"))
   fig_raw <- fig
+  options(warn = oldw)
 
   # Traitement de chaque signal ####
   resM <- NULL # matrice des resultats
@@ -328,6 +331,8 @@ eag.import <- function(Sname, expdes = ExDs, control = "T", tmP = 50, tmD = NULL
 
   ### by Concentration ...
   # plotly for interactive plot
+  oldw <- getOption("warn")
+  options(warn = -1)
   fig <- plot_ly(Teag, type = "scatter", mode = "lines", x = ~time, y = ~value,
                  color = ~con, name = ~variable)
   fig <- plotly::layout(fig, title = Sname,
@@ -342,6 +347,7 @@ eag.import <- function(Sname, expdes = ExDs, control = "T", tmP = 50, tmD = NULL
   htmlwidgets::saveWidget(fig, paste0(wd,"/fig_",Sname,"/options_graph_dy.html"), selfcontained = TRUE)
   file.rename(from = paste0(wd,"/fig_",Sname,"/options_graph_dy.html"),
               to = paste0(wd,"/fig_",Sname,"/",Sname,"_by_concentration.html"))
+  options(warn = oldw)
 
   # matplot for fixed plot
   depol$col_C <- depol$con
@@ -359,6 +365,8 @@ eag.import <- function(Sname, expdes = ExDs, control = "T", tmP = 50, tmD = NULL
   dev.off()
 
   ### by VOC
+  oldw <- getOption("warn")
+  options(warn = -1)
   fig <- plot_ly(Teag, type = "scatter", mode = "lines", x = ~time, y = ~value,
                  color = ~seq, name = ~variable)
   fig <- plotly::layout(fig, title = Sname,
@@ -374,6 +382,7 @@ eag.import <- function(Sname, expdes = ExDs, control = "T", tmP = 50, tmD = NULL
   htmlwidgets::saveWidget(fig, paste0(wd,"/fig_",Sname,"/options_graph_dy.html"), selfcontained = TRUE)
   file.rename(from = paste0(wd,"/fig_",Sname,"/options_graph_dy.html"),
               to = paste0(wd,"/fig_",Sname,"/",Sname,"_by_VOC.html"))
+  options(warn = oldw)
 
   # matplot for fixed plot
   depol$col_S <- depol$seq
@@ -470,6 +479,8 @@ eag.merge <- function(..., eag_names = NULL, tmP = NULL, wd = NULL, print.graph 
   # Graphes ####
   if(print.graph == TRUE){
     ### by Concentration
+    oldw <- getOption("warn")
+    options(warn = -1)
     fig <- plot_ly(Teag, type = "scatter", mode = "lines", x = ~time, y = ~value,
                    color = ~con, name = ~variable)
     fig <- plotly::layout(fig, title = str_flatten(string = eag_names,collapse = " "),
@@ -482,6 +493,7 @@ eag.merge <- function(..., eag_names = NULL, tmP = NULL, wd = NULL, print.graph 
                   legend = list(title=list(text='<b> VOC_concentration </b>'),
                                 x = 0.02, y = 0.9))
     fig <- add_markers(fig, x = ~Tdp, y = ~Idp, data = depol, showlegend= FALSE)
+    options(warn = oldw)
 
     # print(fig)
     htmlwidgets::saveWidget(fig, paste0(wd,"/figures/options_graph_dy.html"), selfcontained = TRUE)
@@ -489,6 +501,8 @@ eag.merge <- function(..., eag_names = NULL, tmP = NULL, wd = NULL, print.graph 
                 to = paste0(wd,"/figures/all_EAG_by_concentration.html"))
 
     ### by VOC
+    oldw <- getOption("warn")
+    options(warn = -1)
     fig <- plot_ly(Teag, type = "scatter", mode = "lines", x = ~time, y = ~value,
                    color = ~seq, name = ~variable)
     fig <- plotly::layout(fig, title = str_flatten(eag_names," "),
@@ -501,6 +515,7 @@ eag.merge <- function(..., eag_names = NULL, tmP = NULL, wd = NULL, print.graph 
              legend = list(title=list(text='<b> VOC_concentration </b>'),
                            x = 0.02, y = 0.9))
     fig <- add_markers(fig, x = ~Tdp, y = ~Idp, data = depol, showlegend= FALSE)
+    options(warn = oldw)
 
     # print(fig)
     htmlwidgets::saveWidget(fig, paste0(wd,"/figures/options_graph_dy.html"), selfcontained = TRUE)
@@ -589,9 +604,10 @@ eag.compilation <- function(expdes, control = "T", tmP = 50, tmD = NULL, ws =25,
 #' @examples
 #' # Meagdepol$con_seq <- paste0(Meag@depol$seq,"_",Meag@depol$con)
 #' # eag.print(Meag, "con_seq")
-eag.print <- function(eag, moda = "seq", delet_seq = NULL, delet_con = NULL){
+eag.print <- function(eag, moda = "seq", delet_seq = NULL, delet_con = NULL, wd = NULL){
 
   # check
+  if (is.null(wd) == TRUE) wd <- eag@wd
   if (class(eag) != "eag") stop("eag must be a eag S4 object")
   if (!is.character(moda)) stop("'moda' must be character")
   if (("figures" %in% dir(wd))==FALSE) dir.create(paste0(wd,"/figures"))
@@ -618,6 +634,8 @@ eag.print <- function(eag, moda = "seq", delet_seq = NULL, delet_con = NULL){
   eag@depol$moda <- eag@depol[,im]
 
   ### Graph by modality
+  oldw <- getOption("warn")
+  options(warn = -1)
   fig <- plot_ly(Teag, type = "scatter", mode = "lines", x = ~time, y = ~value,
                  color = ~moda, name = ~variable)
   fig <- plotly::layout(fig, title = paste(str_flatten(eag@names, " "),"by",moda),
@@ -629,6 +647,7 @@ eag.print <- function(eag, moda = "seq", delet_seq = NULL, delet_con = NULL){
            yaxis = list(title = 'EAG (mV)'),
            legend = list(title=list(text='<b> VOC_concentration </b>'), x = 0.02, y = 0.9))
   fig <- add_markers(fig, x = ~Tdp, y = ~Idp, data = eag@depol, showlegend = FALSE)
+  options(warn = oldw)
 
   print(fig)
 
