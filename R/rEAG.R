@@ -57,7 +57,7 @@ import.exp.design <- function(ExpDes = "Experimental_Design_Name", wd = NULL){
 
   # verification des colonnes
   if (length(colnames(expdes)) < 4) stop("Experimental Design csv file must respect the format.
-                                         Use 'create.empty.exp.design()' for a good practise")
+                                         Use 'create.empty.exp.design()' for a good practice")
   fmr <- colnames(expdes)[1:3] %>% str_flatten()
   if (fmr != "FileNumEAGVOCconcentration" ) stop("Experimental Design csv file must respect the format.
   First columns must be 'File','NumEAG','VOCconcentration' then 'VOCseq'. Use 'create.empty.exp.design()' for a good practise")
@@ -188,7 +188,7 @@ eag.import <- function(Sname, expdes = ExDs, control = "T", tmP = 50, tmD = NULL
 
 
   fmr <- which(Sname == expdes$File) # index dans le plan d'experience
-  if(length(fmr)==0) stop("Sname can't match with the experimental design.")
+  if(length(fmr)==0) stop(paste(Sname, "can't match with the experimental design."))
   Cvoc <- expdes$VOCconcentration[fmr] # Concentrations associees
   Svoc <- expdes$VOCseq[fmr] # sequences VOC associees
   NumEAG <- expdes$NumEAG[fmr] # ID of associated sequence
